@@ -1,12 +1,24 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { mongoURI } = require('./config/keys.js');
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+const { mongoURI, cookieKey } = require('./config/keys.js');
 require('./models/User.js');
 require('./services/passport.js');
 
 mongoose.connect(mongoURI, { useNewUrlParser: true });
 
 const app = express();
+
+app.use(
+    cookieSession({
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        keys: [cookieKey],
+    })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 require('./routes/authRoutes.js')(app);
 
@@ -16,7 +28,13 @@ require('./routes/authRoutes.js')(app);
 // authRoutes(app);
 
 app.get('/', (req, res) => {
+    console.log('Ay Okay');
     return res.send('Hello There!');
+});
+
+app.get('/api/logout', (req, res) => {
+    req.logout();
+    res.send(req.user);
 });
 
 //Heroku Dynamic Port Binding
