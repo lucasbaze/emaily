@@ -6,16 +6,6 @@ const keys = require('../config/keys.js');
 
 const User = mongoose.model('users');
 
-passport.serializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.deserializeUser((id, done) => {
-    User.findById(id).then(user => {
-        done(null, user);
-    });
-});
-
 passport.use(
     new GoogleStrategy(
         {
@@ -27,9 +17,11 @@ passport.use(
         (accessToken, refreshToken, profile, done) => {
             User.findOne({ googleId: profile.id }).then(existingUser => {
                 if (existingUser) {
+                    console.log('I found the user!');
                     done(null, existingUser);
                 } else {
                     new User({ googleId: profile.id }).save().then(newUser => {
+                        console.log("I'm creating a new user!");
                         done(null, newUser);
                     });
                 }
@@ -52,8 +44,10 @@ passport.use(
             console.log(profile.emails[0].value);
             User.findOne({ facebookId: profile.id }).then(existingUser => {
                 if (existingUser) {
+                    console.log('I found the user!');
                     done(null, existingUser);
                 } else {
+                    console.log("I'm creating a new user!");
                     new User({ facebookId: profile.id })
                         .save()
                         .then(newUser => {
@@ -64,3 +58,15 @@ passport.use(
         }
     )
 );
+
+passport.serializeUser((user, done) => {
+    console.log("I'm serializing the User");
+    done(null, user);
+});
+
+passport.deserializeUser((id, done) => {
+    console.log("I'm deserializing the User");
+    User.findById(id).then(user => {
+        done(null, user);
+    });
+});
