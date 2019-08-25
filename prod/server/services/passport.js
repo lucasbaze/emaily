@@ -14,18 +14,17 @@ passport.use(
             callbackURL: '/auth/google/callback',
             proxy: true,
         },
-        (accessToken, refreshToken, profile, done) => {
-            User.findOne({ googleId: profile.id }).then(existingUser => {
-                if (existingUser) {
-                    console.log('I found the user!');
-                    done(null, existingUser);
-                } else {
-                    new User({ googleId: profile.id }).save().then(newUser => {
-                        console.log("I'm creating a new user!");
-                        done(null, newUser);
-                    });
-                }
-            });
+        async (accessToken, refreshToken, profile, done) => {
+            const existingUser = await User.findOne({ googleId: profile.id });
+
+            if (existingUser) {
+                console.log('I found the user!');
+                return done(null, existingUser);
+            }
+
+            const newUser = await new User({ googleId: profile.id }).save();
+            console.log("I'm creating a new user!");
+            done(null, newUser);
         }
     )
 );
@@ -39,22 +38,20 @@ passport.use(
             proxy: true,
             profileFields: ['id', 'displayName', 'profileUrl', 'email'],
         },
-        (accessToken, refreshToken, profile, done) => {
+        async (accessToken, refreshToken, profile, done) => {
             console.log(profile);
             console.log(profile.emails[0].value);
-            User.findOne({ facebookId: profile.id }).then(existingUser => {
-                if (existingUser) {
-                    console.log('I found the user!');
-                    done(null, existingUser);
-                } else {
-                    console.log("I'm creating a new user!");
-                    new User({ facebookId: profile.id })
-                        .save()
-                        .then(newUser => {
-                            done(null, newUser);
-                        });
-                }
-            });
+            const existingUser = await User.findOne({ facebookId: profile.id });
+
+            if (existingUser) {
+                console.log('I found the user!');
+                return done(null, existingUser);
+            }
+
+            console.log("I'm creating a new user!");
+            const newUser = await new User({ facebookId: profile.id }).save();
+
+            done(null, newUser);
         }
     )
 );
